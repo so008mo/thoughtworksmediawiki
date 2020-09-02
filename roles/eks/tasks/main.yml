@@ -58,6 +58,7 @@
   
 - name: Get OIDC Info - Issuer URL
   shell: "aws eks describe-cluster --name {{ eksClusterName }} --region {{ region }} --query cluster.identity.oidc.issuer --output text"
+  register: oidc_issuer_url_output
   
 - name: Get OIDC Info - Issuer Host Path
   shell: "echo {{ oidc_issuer_url_output.stdout }} | cut -f 3- -d'/' "
@@ -80,12 +81,13 @@
   debug:
     msg: "oidc info: {{ oidc_issuer_provider_arn }}, oidc host path: {{ oidc_issuer_provider_host_path }} "
     
+- name: Configure CLuster autoScaler
+  template:
+    src: "roles/{{ role_name }}/templates/cluster-autoscaler.yaml"
+    dest: /tmp/cluster-autoscaler.yaml
+
 - name: Install Cluster autoscaler for capacity
-  k8s:
-    state: present
-    definition: "{{ lookup('template', 'cluster-autoscaler.yaml' }}"
-    
-- name
+  shell: "kubectl apply -f /tmp/cluster-autoscaler.yaml"
     
 - name: Install media wiki helm chart
-  shell: 
+  shell: "helm install mw stable/mediawiki"
