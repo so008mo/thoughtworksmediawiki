@@ -4,7 +4,7 @@
     stack_name: mediawiki-vpc
     state: present
     region: "us-east-1"
-    template: "roles/{{ eks }}/files/amazon-eks-vpc-private-subnets.yaml"
+    template: "roles/{{ role_name }}/files/amazon-eks-vpc.yaml"
   register: vpc_stack
   
 - name: Get VPC Info
