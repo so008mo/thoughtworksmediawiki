@@ -4,7 +4,7 @@
     stack_name: mediawiki-vpc
     state: present
     region: "us-east-1"
-    template: "roles/{{ role_name }}/files/amazon-eks-vpc.yaml"
+    template: "roles/{{ role_name }}/files/eks-vpc.yaml"
   register: vpc_stack
   
 - name: Get VPC Info
@@ -47,9 +47,9 @@
     
 - name: "Settting eksctl action to either Create or Update"
   set_fact:
-    eksctl_action: "{{ 'create' if (eks_cluster_name not in found_clusters_list) else 'update' }}"
+    eksctl_action: "{{ 'create' if (eksClusterName not in found_clusters_list) else 'update' }}"
     
-- name: "Running eksctl eksctl_action {{ eksctl_action | upper }} cluster with name {{ eks_cluster_name | upper }}"
+- name: "Running eksctl eksctl_action {{ eksctl_action | upper }} cluster with name {{ eksClusterName | upper }}"
   command: "eksctl {{ eksctl_action }} cluster -f /tmp/eks-cluster.yaml"
   
 - name: Add Kubectl configuration
@@ -84,3 +84,8 @@
   k8s:
     state: present
     definition: "{{ lookup('template', 'cluster-autoscaler.yaml' }}"
+    
+- name
+    
+- name: Install media wiki helm chart
+  shell: 
