@@ -29,7 +29,7 @@ Components that will be deployed
 
 4. Mediawiki Helm chart.
 
-Reference
+Additional comments
 
 1. Docker file to create the image is also present in the repository.
 
