@@ -11,6 +11,7 @@ Steps to follow:
 
 1. docker run -it arsenal14h/eks-utils /bin/bash  # The container will be created from the image in my docker hub repository.Image is made public only for this project.
 
+# Run below inside the container
 2. git clone https://github.com/so008mo/thoughtworksmediawiki.git 
 
 2. cd /thoughtworksmediawiki
