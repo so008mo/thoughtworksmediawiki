@@ -1,6 +1,6 @@
 # thoughtworksmediawiki
 
-This Project is to build a pipeline to deploy the media wiki helm chart to AWS EKS
+This Project is to build a pipeline to deploy the media wiki helm chart to AWS EKS in us-east-1 region.
 
 Prerequisites to run the code
 
