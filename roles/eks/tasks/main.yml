@@ -103,7 +103,7 @@
   shell: "helm upgrade --install mw --set mediawikiUser=admin,mediawikiPassword=password,mariadb.mariadbRootPassword=secretPassword bitnami/mediawiki"
   
 - name: export APP_HOST
-  shell: "export APP_HOST=$(kubectl get svc --namespace default mw-mediawiki --template\"{{ range (index .status.loadBalancer.ingress 0) }}{{ . }}{{ end }}\")"
+  shell: "export APP_HOST=$(kubectl get svc -n default mw-mediawiki -o jsonpath=\"{.status.loadBalancer.ingress[*].hostname}\")"
   
 - name: export APP_PASSWORD
   shell: "export APP_PASSWORD=$(kubectl get secret --namespace default mw-mediawiki -o jsonpath=\"{.data.mediawiki-password}\" | base64 --decode)"
@@ -118,8 +118,12 @@
   shell: "helm upgrade mw bitnami/mediawiki --set mediawikiHost=$APP_HOST,mediawikiPassword=$APP_PASSWORD,mariadb.mariadbRootPassword=$DATABASE_ROOT_PASSWORD,mariadb.db.password=$APP_DATABASE_PASSWORD"
   
 - name: export SERVICE_IP
-  shell: "export SERVICE_IP=$(kubectl get svc --namespace default mw-mediawiki --template\"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}\")"
+  shell: "export SERVICE_IP=$(kubectl get svc -n default mw-mediawiki -o jsonpath=\"{.status.loadBalancer.ingress[*].hostname}\")"
 
 - name: echo service ip
   shell: "echo\"Mediawiki URL: http://$SERVICE_IP/index.php\""
+  register: mediawikiURL
+  
+- debug: 
+    var "{{ mediawikiURL.stdout }}"
 
