@@ -121,9 +121,9 @@
   shell: "export SERVICE_IP=$(kubectl get svc -n default mw-mediawiki -o jsonpath=\"{.status.loadBalancer.ingress[*].hostname}\")"
 
 - name: echo service ip
-  shell: "echo\"Mediawiki URL: http://$SERVICE_IP/index.php\""
+  shell: "echo \"Mediawiki URL: http://$SERVICE_IP/index.php\""
   register: mediawikiURL
   
 - debug: 
-    var "{{ mediawikiURL.stdout }}"
+    msg: "{{ mediawikiURL.stdout }}"
 
