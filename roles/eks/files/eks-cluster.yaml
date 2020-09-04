@@ -31,7 +31,7 @@ nodeGroups:
   labels:
     nodegroup-type: media-wiki
   ssh:
-    publicKeyName: test
+    publicKeyName: test1
   iam:
     withAddonPolicies:
       externalDNS: true

@@ -16,6 +16,16 @@
   set_fact:
     vpc_info:  "{{vpc_stack_info.cloudformation['mediawiki-vpc'].stack_outputs}}"
     
+- name: Create ec2-key pair
+  ec2_key:
+    name: test1
+    region: {{ region }}
+  register: ec2_key_result
+  
+- name: Save private key
+  copy: content="{{ ec2_key_result.key.private_key }}" dest="./test1.pem" mode=0600
+  when: ec2_key_result.changed
+    
 - name: Set Vars
   set_fact:
     eksClusterName: mediawiki-eks
