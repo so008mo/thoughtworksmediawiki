@@ -100,31 +100,39 @@
   shell: "kubectl apply -f /tmp/cluster-autoscaler.yaml"
     
 - name: Install media wiki helm chart
-  shell: "helm upgrade --install mw --set mediawikiUser=admin,mediawikiPassword=password,mariadb.mariadbRootPassword=secretPassword bitnami/mediawiki"  
+  shell: "helm upgrade --install mw --set mediawikiUser=admin,mediawikiPassword=password,mariadb.mariadbRootPassword=secretPassword,readinessProbe.enabled=false bitnami/mediawiki"
+
+- name: check deployment status
+  shell: "kubectl rollout status statefulset.apps/mw-mariadb -n default"
   
 - name: export APP_HOST
-  shell: "export APP_HOST=$(kubectl get svc -n default mw-mediawiki -o jsonpath=\"{.status.loadBalancer.ingress[*].hostname}\")"
+  shell: "kubectl get svc -n default mw-mediawiki -o jsonpath=\"{.status.loadBalancer.ingress[*].hostname}\""
+  register: APP_HOST
   
 - name: export APP_PASSWORD
-  shell: "export APP_PASSWORD=$(kubectl get secret --namespace default mw-mediawiki -o jsonpath=\"{.data.mediawiki-password}\" | base64 --decode)"
+  shell: "kubectl get secret --namespace default mw-mediawiki -o jsonpath=\"{.data.mediawiki-password}\" | base64 --decode"
+  register: APP_PASSWORD
   
 - name: export DATABASE_ROOT_PASSWORD
-  shell: "export DATABASE_ROOT_PASSWORD=$(kubectl get secret --namespace default mw-mariadb -o jsonpath=\"{.data.mariadb-root-password}\" | base64 --decode)"
-  
+  shell: "kubectl get secret --namespace default mw-mariadb -o jsonpath=\"{.data.mariadb-root-password}\" | base64 --decode"
+  register: DATABASE_ROOT_PASSWORD
+
 - name: export APP_DATABASE
-  shell: "export APP_DATABASE_PASSWORD=$(kubectl get secret --namespace default mw-mariadb -o jsonpath=\"{.data.mariadb-password}\" | base64 --decode)"
-  
+  shell: "kubectl get secret --namespace default mw-mariadb -o jsonpath=\"{.data.mariadb-password}\" | base64 --decode"
+  register: APP_DATABASE_PASSWORD
+
 - name: helm configure
-  shell: "helm upgrade mw bitnami/mediawiki --set mediawikiHost=$APP_HOST,mediawikiPassword=$APP_PASSWORD,mariadb.mariadbRootPassword=$DATABASE_ROOT_PASSWORD,mariadb.db.password=$APP_DATABASE_PASSWORD"
+  shell: "helm upgrade mw bitnami/mediawiki --set mediawikiHost=$APP_HOST,mediawikiPassword=$APP_PASSWORD,mariadb.mariadbRootPassword=$DATABASE_ROOT_PASSWORD,mariadb.db.password=$APP_DATABASE_PASSWORD,readinessProbe.enabled=false"
 
 - name: Wait for Install
   shell: "kubectl rollout status deployment.apps/mw-mediawiki -n default"  
   
 - name: export SERVICE_IP
-  shell: "export SERVICE_IP=$(kubectl get svc -n default mw-mediawiki -o jsonpath=\"{.status.loadBalancer.ingress[*].hostname}\")"
+  shell: "kubectl get svc -n default mw-mediawiki -o jsonpath=\"{.status.loadBalancer.ingress[*].hostname}\""
+  register: SERVICE_IP
 
 - name: echo service ip
-  shell: "echo \"Mediawiki URL: http://$SERVICE_IP/index.php\""
+  shell: "echo \"Mediawiki URL: http://{{ SERVICE_IP }}/index.php\""
   register: mediawikiURL
   
 - debug: 
