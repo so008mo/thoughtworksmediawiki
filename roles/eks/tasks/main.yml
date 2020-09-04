@@ -144,7 +144,7 @@
   register: SERVICE_IP
 
 - name: echo service ip
-  shell: "echo \"Mediawiki URL: http://{{ SERVICE_IP }}/index.php\""
+  shell: "echo \"Mediawiki URL: http://{{ SERVICE_IP.stdout }}/\""
   register: mediawikiURL
   
 - debug: 
