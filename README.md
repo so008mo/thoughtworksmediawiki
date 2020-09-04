@@ -36,3 +36,5 @@ Additional comments
 
 2. The manual steps done above can be done by any CI tool like Jenkins or Gitlab CI.
 
+Note- Post competion of the pipeline please wait for 3-4 mins and then Browse the media Wiki URL mentioned in the output of the pipeline.
+
