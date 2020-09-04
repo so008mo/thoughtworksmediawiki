@@ -108,21 +108,33 @@
 - name: export APP_HOST
   shell: "kubectl get svc -n default mw-mediawiki -o jsonpath=\"{.status.loadBalancer.ingress[*].hostname}\""
   register: APP_HOST
+
+- debug:
+    msg: "{{ APP_HOST.stdout }}"
   
 - name: export APP_PASSWORD
   shell: "kubectl get secret --namespace default mw-mediawiki -o jsonpath=\"{.data.mediawiki-password}\" | base64 --decode"
   register: APP_PASSWORD
+
+- debug:
+    msg: "{{ APP_PASSWORD.stdout }}"
   
 - name: export DATABASE_ROOT_PASSWORD
   shell: "kubectl get secret --namespace default mw-mariadb -o jsonpath=\"{.data.mariadb-root-password}\" | base64 --decode"
   register: DATABASE_ROOT_PASSWORD
 
+- debug:
+    msg: "{{ DATABASE_ROOT_PASSWORD.stdout }}"
+
 - name: export APP_DATABASE
   shell: "kubectl get secret --namespace default mw-mariadb -o jsonpath=\"{.data.mariadb-password}\" | base64 --decode"
   register: APP_DATABASE_PASSWORD
+  
+- debug:
+    msg: "{{ APP_DATABASE_PASSWORD.stdout }}"
 
 - name: helm configure
-  shell: "helm upgrade mw bitnami/mediawiki --set mediawikiHost=$APP_HOST,mediawikiPassword=$APP_PASSWORD,mariadb.mariadbRootPassword=$DATABASE_ROOT_PASSWORD,mariadb.db.password=$APP_DATABASE_PASSWORD,readinessProbe.enabled=false"
+  shell: "helm upgrade mw bitnami/mediawiki --set mediawikiHost={{ APP_HOST.stdout }},mediawikiPassword={{ APP_PASSWORD.stdout }},mariadb.mariadbRootPassword={{ DATABASE_ROOT_PASSWORD.stdout }},mariadb.db.password={{ APP_DATABASE_PASSWORD.stdout }},readinessProbe.enabled=false"
 
 - name: Wait for Install
   shell: "kubectl rollout status deployment.apps/mw-mediawiki -n default"  
