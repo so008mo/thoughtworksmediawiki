@@ -100,10 +100,10 @@
   shell: "kubectl apply -f /tmp/cluster-autoscaler.yaml"
     
 - name: Install media wiki helm chart
-  shell: "helm install mw --set mediawikiUser=admin,mediawikiPassword=password,mariadb.mariadbRootPassword=secretPassword bitnami/mediawiki"
+  shell: "helm upgrade --install mw --set mediawikiUser=admin,mediawikiPassword=password,mariadb.mariadbRootPassword=secretPassword bitnami/mediawiki"
   
 - name: export APP_HOST
-  shell: "export APP_HOST=$(kubectl get svc --namespace default mw-mediawiki --template \"{{ range (index .status.loadBalancer.ingress 0) }}{{ . }}{{ end }}\")"
+  shell: export APP_HOST=$(kubectl get svc --namespace default mw-mediawiki --template \"{{ range (index .status.loadBalancer.ingress 0) }}{{ . }}{{ end }}\")
   
 - name: export APP_PASSWORD
   shell: "$(kubectl get secret --namespace default mw-mediawiki -o jsonpath=\"{.data.mediawiki-password}\" | base64 --decode)"
