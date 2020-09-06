@@ -10,6 +10,7 @@
 - name: Get VPC Info
   cloudformation_info:
     stack_name: mediawiki-vpc
+    region: "us-east-1"
   register: vpc_stack_info
 
 - name: Set VPC Info
