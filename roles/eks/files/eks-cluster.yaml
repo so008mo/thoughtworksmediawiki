@@ -29,9 +29,9 @@ nodeGroups:
   maxSize: 4
   privateNetworking: true
   labels:
-    nodegroup-type: media-wiki
+    nodegroup-type: petclinic
   ssh:
-    publicKeyName: test1
+    publicKeyName: petclinic
   iam:
     withAddonPolicies:
       externalDNS: true

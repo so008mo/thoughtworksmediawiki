@@ -1,7 +1,7 @@
 ---	
 - name: Create VPC
   cloudformation:
-    stack_name: mediawiki-vpc
+    stack_name: petclinic-vpc
     state: present
     region: "us-east-1"
     template: "roles/{{ role_name }}/files/eks-vpc.yaml"
@@ -9,27 +9,27 @@
   
 - name: Get VPC Info
   cloudformation_info:
-    stack_name: mediawiki-vpc
+    stack_name: petclinic-vpc
     region: "us-east-1"
   register: vpc_stack_info
 
 - name: Set VPC Info
   set_fact:
-    vpc_info:  "{{vpc_stack_info.cloudformation['mediawiki-vpc'].stack_outputs}}"
+    vpc_info:  "{{vpc_stack_info.cloudformation['petclinic-vpc'].stack_outputs}}"
     
 - name: Create ec2-key pair
   ec2_key:
-    name: test1
+    name: petclinic
     region: "us-east-1"
   register: ec2_key_result
   
 - name: Save private key
-  copy: content="{{ ec2_key_result.key.private_key }}" dest="./test1.pem" mode=0600
+  copy: content="{{ ec2_key_result.key.private_key }}" dest="./petclinic.pem" mode=0600
   when: ec2_key_result.changed
     
 - name: Set Vars
   set_fact:
-    eksClusterName: mediawiki-eks
+    eksClusterName: petclinic-eks
     region: us-east-1
     a_stack_az: us-east-1a
     b_stack_az: us-east-1b
@@ -100,54 +100,15 @@
 - name: Install Cluster autoscaler for capacity
   shell: "kubectl apply -f /tmp/cluster-autoscaler.yaml"
     
-- name: Install media wiki helm chart
-  shell: "helm upgrade --install mw --set mediawikiUser=admin,mediawikiPassword=password,mariadb.mariadbRootPassword=secretPassword,readinessProbe.enabled=false bitnami/mediawiki"
+- name: Install petclinic helm chart
+  shell: "helm upgrade --install petclinic ./deploy/spring-petclinic"
 
 - name: check deployment status
-  shell: "kubectl rollout status statefulset.apps/mw-mariadb -n default"
+  shell: "kubectl rollout status deployment.apps/petclinic"
   
-- name: export APP_HOST
-  shell: "kubectl get svc -n default mw-mediawiki -o jsonpath=\"{.status.loadBalancer.ingress[*].hostname}\""
-  register: APP_HOST
+- name: export PETCLINIC_URL
+  shell: "kubectl get svc -n default petclinic -o jsonpath=\"{.status.loadBalancer.ingress[*].hostname}\""
+  register: PETCLINIC_URL
 
 - debug:
-    msg: "{{ APP_HOST.stdout }}"
-  
-- name: export APP_PASSWORD
-  shell: "kubectl get secret --namespace default mw-mediawiki -o jsonpath=\"{.data.mediawiki-password}\" | base64 --decode"
-  register: APP_PASSWORD
-
-- debug:
-    msg: "{{ APP_PASSWORD.stdout }}"
-  
-- name: export DATABASE_ROOT_PASSWORD
-  shell: "kubectl get secret --namespace default mw-mariadb -o jsonpath=\"{.data.mariadb-root-password}\" | base64 --decode"
-  register: DATABASE_ROOT_PASSWORD
-
-- debug:
-    msg: "{{ DATABASE_ROOT_PASSWORD.stdout }}"
-
-- name: export APP_DATABASE
-  shell: "kubectl get secret --namespace default mw-mariadb -o jsonpath=\"{.data.mariadb-password}\" | base64 --decode"
-  register: APP_DATABASE_PASSWORD
-  
-- debug:
-    msg: "{{ APP_DATABASE_PASSWORD.stdout }}"
-
-- name: helm configure
-  shell: "helm upgrade mw bitnami/mediawiki --set mediawikiHost={{ APP_HOST.stdout }},mediawikiPassword={{ APP_PASSWORD.stdout }},mariadb.mariadbRootPassword={{ DATABASE_ROOT_PASSWORD.stdout }},mariadb.db.password={{ APP_DATABASE_PASSWORD.stdout }},readinessProbe.enabled=false"
-
-- name: Wait for Install
-  shell: "kubectl rollout status deployment.apps/mw-mediawiki -n default"  
-  
-- name: export SERVICE_IP
-  shell: "kubectl get svc -n default mw-mediawiki -o jsonpath=\"{.status.loadBalancer.ingress[*].hostname}\""
-  register: SERVICE_IP
-
-- name: echo service ip
-  shell: "echo \"Mediawiki URL: http://{{ SERVICE_IP.stdout }}/\""
-  register: mediawikiURL
-  
-- debug: 
-    msg: "{{ mediawikiURL.stdout }}"
-
+    msg: "{{ PETCLINIC_URL.stdout }}"
